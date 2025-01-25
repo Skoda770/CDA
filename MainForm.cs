@@ -2,86 +2,86 @@ using CDA.Models;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using CDA.Enums;
+using CDA.Factories;
+using CDA.Models.Abstracts;
+using CDA.Models.Downloaders;
 using YoutubeDLSharp;
 
 namespace CDA
 {
     public partial class MainForm : Form
     {
+        private readonly DownloaderFactory _downloaderFactory;
+
         public MainForm()
         {
             InitializeComponent();
             SetInitialData();
+            this._downloaderFactory = new DownloaderFactory(this.listView1);
         }
+
         private void SetInitialData()
         {
             videoDownload.Checked = true;
             destinationCatalog.Text = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos);
         }
+
         private void Form1_Load(object sender, EventArgs e)
         {
-
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
-
         }
 
         private async void button1_Click(object sender, EventArgs e)
         {
-            listView1.Items.Clear();
-            AbstractDownloader videoDownloader = GetDownloadType() == DownloadType.Catalog ? new CatalogDownloader(listView1) : new VideoDownloader(listView1);
-            await videoDownloader.Download(OriginUrl.Text, Path.GetFullPath(destinationCatalog.Text), 4);
+            AbstractDownloader downloader = this._downloaderFactory.GetDownloader(this.GetDownloadType());
+            await Task.Run((Func<Task>)(async () =>
+                await downloader.Download(this.OriginUrl.Text, Path.GetFullPath(this.destinationCatalog.Text))));
         }
+
         private DownloadType GetDownloadType()
         {
-            RadioButton? check = null;
-            foreach (var button in downloadType.Controls.Get<RadioButton>())
+            RadioButton check = (RadioButton)null;
+            foreach (RadioButton button in this.downloadType.Controls.Get<RadioButton>())
             {
                 if (button.Checked)
                 {
-                    check = button; break;
+                    check = button;
+                    break;
                 }
-            };
-            if (check is null)
+            }
+
+            if (check == null)
             {
-                MessageBox.Show("Moøe wybierzesz typ pobierania co?");
+                int num = (int)MessageBox.Show("Mo≈ºe wybierzesz typ pobierania co?");
                 throw new ArgumentException("Invalid download type");
             }
-            if (check.Name == "videoDownload") return DownloadType.Video;
-            return DownloadType.Catalog;
-        }
-        protected enum DownloadType
-        {
-            Video,
-            Catalog
-        }
-        private void textBox1_TextChanged_1(object sender, EventArgs e)
-        {
 
+            if (check.Name == "videoDownload")
+                return DownloadType.Video;
+            return check.Name == "catalogArchiveOrgDownload" ? DownloadType.CatalogArchiveOrg : DownloadType.CatalogCda;
         }
 
-        private void progressBar1_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void folderBrowserDialog1_HelpRequest(object sender, EventArgs e)
-        {
-
-        }
 
         private void destinationCatalog_TextChanged(object sender, EventArgs e)
         {
-
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
-            folderBrowserDialog1.InitialDirectory = this.Controls["destinationCatalog"].Text;
-            if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
-                this.Controls["destinationCatalog"].Text = folderBrowserDialog1.SelectedPath;
+            this.folderBrowserDialog1.InitialDirectory = this.Controls["destinationCatalog"].Text;
+            if (this.folderBrowserDialog1.ShowDialog() != DialogResult.OK)
+                return;
+            this.Controls["destinationCatalog"].Text = this.folderBrowserDialog1.SelectedPath;
         }
+
+        private void NavigateToLogs_Click(object sender, EventArgs e)
+        {
+            Process.Start("explorer.exe", Logger._directory);
+        }
+
     }
 }

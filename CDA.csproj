@@ -7,10 +7,12 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
 	  <EnableWindowsTargeting>true</EnableWindowsTargeting>
+	  <LangVersion>13</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="HtmlAgilityPack" Version="1.11.54" />
+    <PackageReference Include="log4net" Version="3.0.3" />
     <PackageReference Include="Polly" Version="8.1.0" />
     <PackageReference Include="Selenium.WebDriver" Version="4.15.0" />
     <PackageReference Include="YoutubeDLSharp" Version="1.0.0" />
